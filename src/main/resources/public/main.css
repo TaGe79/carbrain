@@ -1,0 +1,11 @@
+td {
+    width: 60px;
+    height: 60px;
+    background: lightgray;
+    text-align: center;
+    vertical-align: middle;
+}
+
+td:hover {
+    background: gray;
+}
