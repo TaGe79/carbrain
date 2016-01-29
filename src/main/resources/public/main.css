@@ -1,11 +1,136 @@
 td {
     width: 60px;
     height: 60px;
-    background: lightgray;
+    background: white;
     text-align: center;
     vertical-align: middle;
+    border-radius: 8px;
+    border: 1px solid darkgray;
+}
+
+td, td>* {
+    cursor:pointer;
 }
 
 td:hover {
-    background: gray;
+    background: #fafafa;
+}
+
+div#frontView {
+    width: 800px;
+    height:450px;
+    border-radius: 15px;
+    border: 1px solid darkgray;
+}
+
+img.carStream {
+    position: absolute;
+    background-color: #777777;
+    left:11px;
+    top:30px;
+    width:795px;
+    height:410px;
+    z-index: -1;
+}
+
+.button {
+    display:block;
+    cursor: pointer;
+    margin-top:10px;
+    border-radius: 8px;
+    border: 1px solid darkgray;
+    vertical-align: middle;
+    text-align:center;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    z-index: 999;
+    color: white;
+}
+.button:hover {
+    background: #222222;
+}
+
+div#front_light {
+    position:absolute;
+    left: 395px;
+    top: 20px;
+    width: 40px;
+    padding-top:5px!important;
+    padding-bottom:5px!important;
+    border:0!important;
+}
+
+div#offset_add {
+    position:absolute;
+    left: 350px;
+    top: 390px;
+    width: 40px;
+    padding-top:5px!important;
+    padding-bottom:5px!important;
+    border:0!important;
+}
+
+div#offset_sub {
+    position:absolute;
+    left: 430px;
+    top: 390px;
+    width: 40px;
+    padding-top:5px!important;
+    padding-bottom:5px!important;
+    border:0!important;
+}
+
+div#offset_value {
+    position:absolute;
+    left: 390px;
+    width: 40px;
+    top: 410px;
+    font-size: 15px;
+    text-align: center;
+    color: white;
+    z-index: 999;
+}
+
+.on {
+    color: yellow;
+}
+
+.off {
+    color: white;
+}
+
+
+div#accelerate {
+    position:absolute;
+    left: 20px;
+    top: 110px;
+    width: 64px;
+}
+
+div#stop {
+    position:absolute;
+    left: 20px;
+    top: 190px;
+    width: 64px;
+}
+
+div#decelerate {
+    position:absolute;
+    left: 20px;
+    top: 250px;
+    width: 64px;
+}
+
+div#turn_left {
+    position:absolute;
+    left: 600px;
+    top: 190px;
+    width: 90px;
+}
+
+div#turn_right {
+    position:absolute;
+    left: 710px;
+    top: 190px;
+    width: 90px;
 }

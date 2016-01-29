@@ -2,28 +2,53 @@
 <html>
 <head>
     <title>CarBrain v0.1.</title>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="main.css"/>
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
     <script src="cockpit.js"></script>
-    <link rel="stylesheet" type="text/css" href="main.css"/>
+    <script src="imageStream.js"></script>
 </head>
 
 <body>
 <div>
-    <p id="carCommandContainer">Last command:&nbsp;<span id="carCommand"/></p>
-</div>
-<div>
-    <table>
-        <tr>
-            <td id="light">L</td>
-            <td id="forward">^</td>
-            <td id="stop">S</td>
-        </tr>
-        <tr>
-            <td id="left"><</td>
-            <td id="backward">v</td>
-            <td id="right">></td>
-        </tr>
-    </table>
+    <div id="frontView">
+        <noscript><img class="carStream" src="http://192.168.0.15:8080/?action=snapshot"/></noscript>
+        <div id="front_light" class="button"><i class="material-icons">lightbulb_outline</i></div>
+        <div id="accelerate" class="button"><i class="material-icons">keyboard_arrow_up</i></div>
+        <div id="stop" class="button" style="padding-top:10px; padding-bottom:10px;">
+            <i class="material-icons">highlight_off</i>
+        </div>
+        <div id="decelerate" class="button"><i class="material-icons">keyboard_arrow_down</i></div>
+        <div id="turn_left" class="button"><i class="material-icons">keyboard_arrow_left</i></div>
+        <div id="turn_right" class="button"><i class="material-icons">keyboard_arrow_right</i></div>
+
+        <div id="offset_add" class="button"><i class="material-icons">add</i></div>
+        <div id="offset_value">999</div>
+        <div id="offset_sub" class="button"><i class="material-icons">remove</i></div>
+    </div>
+    <div>
+        <p id="carCommandContainer">Last command:&nbsp;<span id="carCommand"/></p>
+    </div>
+    <!--<table>-->
+    <!--<tr style="margin-bottom:20px;">-->
+    <!--<td colspan="3" style="height:128px; cursor:none!important; padding-bottom:20px;"></td>-->
+    <!--</tr>-->
+    <!--<tr>-->
+    <!--<td colspan="3" style="border:0; height:30px;"></td>-->
+    <!--</tr>-->
+    <!--<tr>-->
+    <!--<td id="light"><i class="material-icons">lightbulb_outline</i></td>-->
+    <!--<td id="forward"><i class="material-icons">keyboard_arrow_up</i></td>-->
+    <!--<td id="stop"><i class="material-icons">highlight_off</i></td>-->
+    <!--</tr>-->
+    <!--<tr>-->
+    <!--<td id="left"><i class="material-icons">keyboard_arrow_left</i></td>-->
+    <!--<td id="backward"><i class="material-icons">keyboard_arrow_down</i></td>-->
+    <!--<td id="right"><i class="material-icons">keyboard_arrow_right</i></td>-->
+    <!--</tr>-->
+    <!--</table>-->
 </div>
 </body>
 </html>

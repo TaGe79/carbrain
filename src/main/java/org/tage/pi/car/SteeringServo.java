@@ -1,5 +1,6 @@
 package org.tage.pi.car;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +19,15 @@ import javax.annotation.PostConstruct;
 public class SteeringServo {
     protected final PCA9685Driver pwmDriver;
 
-    protected int leftPWM = 375;
-    protected int straightPWM = 450;
-    protected int rightPWM = 525;
+    protected int leftPWM = 300;
+    protected int straightPWM = 400;
+    protected int rightPWM = 500;
 
     @Value("${steering.servo.channel:0}")
     protected int channel;
 
-    @Value("${steering.servo.offset:-128}")
+    @Getter
+    @Value("${steering.servo.offset:0}")
     protected int offset;       // fine-tune the servo and store the offset in properties
 
     @PostConstruct
@@ -35,6 +37,8 @@ public class SteeringServo {
         straightPWM += offset;
 
         pwmDriver.setPWMFreq(60);
+
+        calibrate(offset);
     }
 
     public void turnLeft() {

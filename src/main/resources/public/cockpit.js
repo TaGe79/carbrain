@@ -1,43 +1,77 @@
+var serverAddress = window.location.href.split("/")[0] + "//" + window.location.href.split("/")[2];
+var servoOffset;
+
 $(document).ready(function () {
-//    $.ajax({
-//        url: "http://rest-service.guides.spring.io/greeting"
-//    }).then(function(data) {
-//       $('.greeting-id').append(data.id);
-//       $('.greeting-content').append(data.content);
-//    });
+  $.get(serverAddress + "/car/calibration", function(data,status) {
+    servoOffset = Number.parseInt(data);
+    $("#offset_value").text(data);
+  });
 
   window.addEventListener("keydown", keyDown, false);
   window.addEventListener("keyup", keyUp, false);
 
-  $('#left').mousedown(function () {
-    keyDown({keyCode: 37});
-  });
-  $('#right').mousedown(function () {
-    keyDown({keyCode: 39});
-  });
-  $('#forward').mousedown(function () {
-    keyDown({keyCode: 38});
-  });
-  $('#backward').mousedown(function () {
-    keyDown({keyCode: 40});
+  $('#offset_add').mouseup(function() {
+    servoOffset += 5;
+    $.ajax({
+      url:'http://192.168.0.15:8090/car/calibration',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(servoOffset)}).done(function(data) {
+        $("#offset_value").text(data);
+      });
   });
 
-  $('#left').mouseup(function () {
+  $('#offset_sub').mouseup(function() {
+    servoOffset -= 5;
+    $.ajax({
+      url:'http://192.168.0.15:8090/car/calibration',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(servoOffset)}).done(function(data) {
+        $("#offset_value").text(data);
+      });
+  });
+
+  $('#turn_left').mousedown(function () {
+    keyDown({keyCode: 37});
+  });
+  $('#turn_right').mousedown(function () {
+    keyDown({keyCode: 39});
+  });
+  $('#accelerate').mousedown(function () {
+    keyDown({keyCode: 38});
+  });
+  $('#decelerate').mousedown(function () {
+    keyDown({keyCode: 40});
+  });
+  $('#stop').mousedown(function () {
+    keyDown({keyCode: 96});
+  });
+  $('#front_light').mousedown(function () {
+    keyDown({keyCode: 76});
+  });
+
+  $('#front_light').mouseup(function () {
+    keyUp({keyCode: 76});
+  });
+  $('#turn_left').mouseup(function () {
     keyUp({keyCode: 37});
   });
-  $('#right').mouseup(function () {
+  $('#turn_right').mouseup(function () {
     keyUp({keyCode: 39});
   });
-  $('#forward').mouseup(function () {
+  $('#accelerate').mouseup(function () {
     keyUp({keyCode: 38});
   });
-  $('#backward').mouseup(function () {
+  $('#decelerate').mouseup(function () {
     keyUp({keyCode: 40});
+  });
+  $('#stop').mouseup(function () {
+    keyUp({keyCode: 96});
   });
 
 });
 
-var serverAddress = window.location.href.split("/")[0] + "//" + window.location.href.split("/")[2];
 function sendCommand(command) {
   $.get(serverAddress + "/car/" + command, function (data, status) {
     console.log('Result(' + status + ') ' + data);
@@ -61,7 +95,7 @@ const __MAX_SPEED = 100;
 const __MIN_SPEED = 50;
 
 var activeCommands = [];
-var currentSpeed = 0;
+var currentSpeed = 70;
 var timer = null;
 var frontLight = false;
 
@@ -91,15 +125,16 @@ var commandMap = {
   commands: [
     {
       command: 'forward',
-      incremental: true,
+      incremental: false,
       onActive: function () {
         console.log('Call the forward REST-Api');
         // If the car is going backward stop it
-        if (currentSpeed < 0) {
-          sendCommand("stop");
-          currentSpeed = 10;
-          setSpeed(currentSpeed);
-        }
+//        if (currentSpeed < 0) {
+//          sendCommand("stop");
+//          currentSpeed = 10;
+//          setSpeed(currentSpeed);
+//        }
+        setSpeed(Math.abs(currentSpeed));
         sendCommand("go/forward");
       },
       onIncrement: function () {
@@ -131,19 +166,20 @@ var commandMap = {
           }
         }, 1000);
       },
-      onReverse: null
+      onReverse: function() {sendCommand("stop");}
     },
     {
       command: 'backward',
-      incremental: true,
+      incremental: false,
       onActive: function () {
         console.log('Call the backward REST-Api (and set the speed to a minimum)');
         // If the car is going backward stop it
-        if (currentSpeed > 0) {
-          sendCommand("stop");
-          currentSpeed = -5;
-          setSpeed(Math.abs(currentSpeed));
-        }
+//        if (currentSpeed > 0) {
+//          sendCommand("stop");
+//          currentSpeed = -5;
+//          setSpeed(Math.abs(currentSpeed));
+//        }
+        setSpeed(Math.abs(currentSpeed));
         sendCommand("go/backward");
       },
       onIncrement: function () {
@@ -175,7 +211,7 @@ var commandMap = {
           }
         }, 1000);
       },
-      onReverse: null
+      onReverse: function() {sendCommand("stop");}
     },
     {
       command: 'left',
@@ -212,8 +248,10 @@ var commandMap = {
       onActive: function
         () {
         console.log('Call the light on/off REST-Api according to current light state');
+        $('#front_light').removeClass((frontLight ? "on" : "off"));
         frontLight = !frontLight;
         sendCommand("front/light/" + (frontLight ? "on" : "off"));
+        $('#front_light').addClass((frontLight ? "on" : "off"));
       }
       ,
       onIncrement: null,

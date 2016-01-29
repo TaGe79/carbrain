@@ -16,75 +16,88 @@ import org.tage.pi.car.CarEngine;
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class CarController {
 
-  protected final CarEngine engine;
+    protected final CarEngine engine;
 
-  @RequestMapping(path = "turn/{direction}", method = RequestMethod.GET)
-  @ResponseBody
-  public String turn(@PathVariable("direction") String direction) {
-    switch (direction) {
-      case "left":
-        engine.getSteeringServo().turnLeft();
-        break;
-      case "right":
-        engine.getSteeringServo().turnRight();
-        break;
-      case "straight":
-        engine.getSteeringServo().turnStraight();
-        break;
-      default:
-        log.warn("Don't know what to do for: {}", direction);
+    @RequestMapping(path = "turn/{direction}", method = RequestMethod.GET)
+    @ResponseBody
+    public String turn(@PathVariable("direction") String direction) {
+        switch (direction) {
+            case "left":
+                engine.getSteeringServo().turnLeft();
+                break;
+            case "right":
+                engine.getSteeringServo().turnRight();
+                break;
+            case "straight":
+                engine.getSteeringServo().turnStraight();
+                break;
+            default:
+                log.warn("Don't know what to do for: {}", direction);
+        }
+
+        return direction;
     }
 
-    return direction;
-  }
-
-  @RequestMapping(path = "speed/{speed}", method = RequestMethod.GET)
-  @ResponseBody
-  public String setSpeed(@PathVariable("speed") String speed) {
-    engine.getMotor().setSpeed(Integer.parseInt(speed));
-    return speed;
-  }
-
-  @RequestMapping(path = "go/{direction}", method = RequestMethod.GET)
-  @ResponseBody
-  public String go(@PathVariable("direction") String direction,
-                   @RequestParam(required = false, defaultValue = "50") int speed) {
-    engine.getMotor().setSpeed(speed);
-    switch (direction) {
-      case "forward":
-        engine.getMotor().forward();
-        break;
-      case "backward":
-        engine.getMotor().backward();
-        break;
-      default:
-        log.warn("Don't know what to do for: {}", direction);
+    @RequestMapping(path = "calibration", method = RequestMethod.GET)
+    @ResponseBody
+    public String getCalibration() {
+        return String.valueOf(engine.getSteeringServo().getOffset());
     }
 
-    return direction;
-  }
-
-  @RequestMapping(path = "stop", method = RequestMethod.GET)
-  @ResponseBody
-  public String stop() {
-    engine.getMotor().stop();
-    return "stop";
-  }
-
-  @RequestMapping(path = "front/light/{action}")
-  @ResponseBody
-  public String frontLight(@PathVariable("action") String action) {
-    switch (action) {
-      case "on":
-        engine.getFrontLight().on();
-        break;
-      case "off":
-        engine.getFrontLight().off();
-        break;
-      default:
-        log.warn("Don't know what to do for: {}", action);
+    @RequestMapping(path = "calibration", consumes = "application/json", method = RequestMethod.POST)
+    @ResponseBody
+    public String calibrate(@RequestBody int offset) {
+        engine.getSteeringServo().calibrate(offset);
+        return String.valueOf(offset);
     }
 
-    return "front light turned " + action;
-  }
+    @RequestMapping(path = "speed/{speed}", method = RequestMethod.GET)
+    @ResponseBody
+    public String setSpeed(@PathVariable("speed") String speed) {
+        engine.getMotor().setSpeed(Integer.parseInt(speed));
+        return speed;
+    }
+
+    @RequestMapping(path = "go/{direction}", method = RequestMethod.GET)
+    @ResponseBody
+    public String go(@PathVariable("direction") String direction,
+                     @RequestParam(required = false, defaultValue = "50") int speed) {
+        engine.getMotor().setSpeed(speed);
+        switch (direction) {
+            case "forward":
+                engine.getMotor().forward();
+                break;
+            case "backward":
+                engine.getMotor().backward();
+                break;
+            default:
+                log.warn("Don't know what to do for: {}", direction);
+        }
+
+        return direction;
+    }
+
+    @RequestMapping(path = "stop", method = RequestMethod.GET)
+    @ResponseBody
+    public String stop() {
+        engine.getMotor().stop();
+        return "stop";
+    }
+
+    @RequestMapping(path = "front/light/{action}")
+    @ResponseBody
+    public String frontLight(@PathVariable("action") String action) {
+        switch (action) {
+            case "on":
+                engine.getFrontLight().on();
+                break;
+            case "off":
+                engine.getFrontLight().off();
+                break;
+            default:
+                log.warn("Don't know what to do for: {}", action);
+        }
+
+        return "front light turned " + action;
+    }
 }
