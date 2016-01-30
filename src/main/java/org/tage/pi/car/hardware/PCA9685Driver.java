@@ -12,8 +12,8 @@ import java.io.IOException;
 /**
  * Created by tgergel on 13/01/16.
  */
-@Component
 @Slf4j
+@Component
 public class PCA9685Driver {
 
     protected static final int DRIVER_BASE_ADDRESS = 0x40;

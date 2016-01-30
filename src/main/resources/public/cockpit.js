@@ -32,6 +32,16 @@ $(document).ready(function () {
       });
   });
 
+  setInterval(function() {
+    $.get(serverAddress + "/car/front/collision/state", function(data) {
+      $("#front_collision_warning").removeClass(data === true ? 'hide' : 'show');
+      $("#front_collision_warning").addClass(data === true ? 'show' : 'hide');
+    });
+    $.get(serverAddress + "/car/front/obstacle/distance", function(data) {
+      $('#front_obstacle_distance_value').text(data+" mm");
+    });
+  }, 1000);
+
   $('#turn_left').mousedown(function () {
     keyDown({keyCode: 37});
   });

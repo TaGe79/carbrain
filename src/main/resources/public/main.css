@@ -99,6 +99,34 @@ div#offset_value {
     color: white;
 }
 
+.show {
+    visibility: visible;
+}
+
+.hide {
+    visibility: hidden;
+}
+
+
+div#front_obstacle_distance_value {
+    position:absolute;
+    left: 50px;
+    width: 60px;
+    top: 40px;
+    font-size: 15px;
+    text-align: center;
+    color: white;
+    z-index: 999;
+}
+
+div#front_collision_warning {
+    position:absolute;
+    color:red;
+    left: 20px;
+    top: 35px;
+    width:50px;
+    z-index: 999;
+}
 
 div#accelerate {
     position:absolute;

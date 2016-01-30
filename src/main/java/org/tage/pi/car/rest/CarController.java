@@ -100,4 +100,16 @@ public class CarController {
 
         return "front light turned " + action;
     }
+
+    @RequestMapping(path = "front/obstacle/distance", method = RequestMethod.GET)
+    @ResponseBody
+    public long getFrontObstacleDistance() {
+        return engine.getFrontCollisionDetector().getCurrentDistance();
+    }
+
+    @RequestMapping(path = "front/collision/state", method = RequestMethod.GET)
+    @ResponseBody
+    public boolean carFrontCollisionState() {
+        return engine.getCarStateAggregator().isFrontCollisionWarning();
+    }
 }

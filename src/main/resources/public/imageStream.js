@@ -13,6 +13,7 @@ function createImageLayer() {
   img.className = 'carStream';
   img.onload = imageOnload;
   img.onclick = imageOnclick;
+  img.style = 'z-index: -1';
   img.src = serverImgAddress+":8080/?action=snapshot&n=" + (++imageNr);
 
   var webcam = $(document.getElementById("frontView"));

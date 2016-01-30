@@ -2,14 +2,17 @@ package org.tage.pi.car;
 
 import com.pi4j.io.gpio.*;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.tage.pi.car.hardware.PCA9685Driver;
 
 import javax.annotation.PostConstruct;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -23,6 +26,12 @@ public class CarMotor {
     @Autowired
     @Qualifier("gpio")
     protected GpioController gpio;
+
+    @Autowired
+    CarStateAggregator carState;
+
+    @Value("${car.stop-on-collision-warning:false}")
+    boolean stopOnCollisionWarning;
 
     // ===========================================================================
     // Raspberry Pi pin11, 12, 13 and 15 to realize the clockwise/counterclockwise
@@ -43,6 +52,11 @@ public class CarMotor {
 
     Map<Pin, GpioPinDigitalOutput> motorPins;
 
+    @Setter
+    private Consumer<Direction> directionStateChangeHandler;
+
+    @Setter
+    private Consumer<Long> speedStateChangeHandler;
 
     @PostConstruct
     protected void setup() {
@@ -58,6 +72,7 @@ public class CarMotor {
         int convSpeed = speed * 40;
         pwmDriver.setPWM(EN_M0, 0, convSpeed);
         pwmDriver.setPWM(EN_M1, 0, convSpeed);
+        if (speedStateChangeHandler != null) speedStateChangeHandler.accept((long) speed);
     }
 
     public void motor(int motor, MotorDirection direction) {
@@ -71,21 +86,33 @@ public class CarMotor {
             case FORWARD:
                 motorPins.get(motor == 0 ? Motor0_A : Motor1_A).high();
                 motorPins.get(motor == 0 ? Motor0_B : Motor1_B).low();
+                break;
         }
     }
 
     public void forward() {
+        if (carState.isFrontCollisionWarning() && stopOnCollisionWarning) {
+            return;
+        }
+
         motor(0, MotorDirection.FORWARD);
         motor(1, MotorDirection.FORWARD);
+
+        if (directionStateChangeHandler != null) directionStateChangeHandler.accept(Direction.FORWARD);
     }
 
     public void backward() {
         motor(0, MotorDirection.BACKWARD);
         motor(1, MotorDirection.BACKWARD);
+
+        if (directionStateChangeHandler != null) directionStateChangeHandler.accept(Direction.BACKWARD);
+
     }
 
     public void stop() {
         motorPins.values().forEach(pin -> pin.low());
+
+        if (directionStateChangeHandler != null) directionStateChangeHandler.accept(Direction.NO);
     }
 
     public enum MotorDirection {

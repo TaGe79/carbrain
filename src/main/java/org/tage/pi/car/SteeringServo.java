@@ -2,6 +2,7 @@ package org.tage.pi.car;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Component;
 import org.tage.pi.car.hardware.PCA9685Driver;
 
 import javax.annotation.PostConstruct;
+import java.util.function.Consumer;
 
 /**
  * Created by tgergel on 15/01/16.
@@ -22,6 +24,9 @@ public class SteeringServo {
     protected int leftPWM = 300;
     protected int straightPWM = 400;
     protected int rightPWM = 500;
+
+    @Setter
+    private Consumer<Direction> directionStateChangeHandler;
 
     @Value("${steering.servo.channel:0}")
     protected int channel;
@@ -43,14 +48,20 @@ public class SteeringServo {
 
     public void turnLeft() {
         pwmDriver.setPWM(channel, 0, leftPWM);
+
+        if ( directionStateChangeHandler != null) directionStateChangeHandler.accept(Direction.LEFT);
     }
 
     public void turnRight() {
         pwmDriver.setPWM(channel, 0, rightPWM);
+
+        if ( directionStateChangeHandler != null) directionStateChangeHandler.accept(Direction.RIGHT);
     }
 
     public void turnStraight() {
         pwmDriver.setPWM(channel, 0, straightPWM);
+
+        if ( directionStateChangeHandler != null) directionStateChangeHandler.accept(Direction.NO);
     }
 
     public void calibrate(int x) {
