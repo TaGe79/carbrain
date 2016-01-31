@@ -101,15 +101,31 @@ public class CarController {
         return "front light turned " + action;
     }
 
-    @RequestMapping(path = "front/obstacle/distance", method = RequestMethod.GET)
+    @RequestMapping(path = "{position}/obstacle/distance", method = RequestMethod.GET)
     @ResponseBody
-    public long getFrontObstacleDistance() {
-        return engine.getFrontCollisionDetector().getCurrentDistance();
+    public long getFrontObstacleDistance(@PathVariable("position") String position) {
+        switch (position) {
+            case "front":
+                return engine.getFrontCollisionDetector().getCurrentDistance();
+            case "rear":
+                return engine.getRearCollisionDetector().getCurrentDistance();
+            default:
+                log.warn("Don't know which sensor do you mean by {}", position);
+                return 0;
+        }
     }
 
-    @RequestMapping(path = "front/collision/state", method = RequestMethod.GET)
+    @RequestMapping(path = "{position}/collision/state", method = RequestMethod.GET)
     @ResponseBody
-    public boolean carFrontCollisionState() {
-        return engine.getCarStateAggregator().isFrontCollisionWarning();
+    public boolean carFrontCollisionState(@PathVariable("position") String position) {
+        switch (position) {
+            case "front":
+                return engine.getCarStateAggregator().isFrontCollisionWarning();
+            case "rear":
+                return engine.getCarStateAggregator().isRearCollisionWarning();
+            default:
+                log.warn("Don't know which sensor do you mean by {}", position);
+                return false;
+        }
     }
 }

@@ -40,6 +40,11 @@ public class CarEngine implements ApplicationListener<ApplicationContextEvent> {
 
     @Getter
     @Autowired
+    @Qualifier("RearCollisionDetector")
+    HCSR04USDistance rearCollisionDetector;
+
+    @Getter
+    @Autowired
     CarStateAggregator carStateAggregator;
 
     @PostConstruct
@@ -62,13 +67,24 @@ public class CarEngine implements ApplicationListener<ApplicationContextEvent> {
 
     @Scheduled(initialDelay = 10000, fixedDelayString = "${car.engine.collision.avoidance.task.delay:1000}")
     protected void collisionAvoidanceTask() throws InterruptedException {
-        if (frontCollisionDetector.getCurrentDistance() < 130) {
-            log.info("Collision warning! Stop the car!");
+
+        final long frontObstacleDistance = frontCollisionDetector.getCurrentDistance();
+        final long rearObstacleDistance = rearCollisionDetector.getCurrentDistance();
+
+        if (frontObstacleDistance < 130) {
+            log.info("Front collision warning. Distance: {}", frontObstacleDistance);
             carStateAggregator.setFrontCollisionWarning(true);
             frontLight.on();
         } else {
             frontLight.off();
             carStateAggregator.setFrontCollisionWarning(false);
+        }
+
+        if (rearObstacleDistance < 170) {
+            log.info("Rear collision warning. Distance: {}", rearObstacleDistance);
+            carStateAggregator.setRearCollisionWarning(true);
+        } else {
+            carStateAggregator.setRearCollisionWarning(false);
         }
     }
 }

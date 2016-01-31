@@ -17,5 +17,8 @@ public class CarStateAggregator {
 
     private boolean frontCollisionWarning = false;
 
+    private boolean rearCollisionWarning = false;
+
     private boolean frontLight = false;
+
 }

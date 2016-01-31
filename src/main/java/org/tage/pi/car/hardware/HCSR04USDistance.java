@@ -4,6 +4,7 @@ import com.pi4j.io.gpio.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -32,8 +33,11 @@ public class HCSR04USDistance {
 
     protected volatile long distanceMillimeter = 999;
 
+    @Value("${hcsr04.measurement.timeout:700}")
+    protected long measurementTimeout;
+
     @Autowired
-    AsyncTaskExecutor te;
+    protected AsyncTaskExecutor te;
 
 
     @PostConstruct
@@ -49,7 +53,6 @@ public class HCSR04USDistance {
 
     private void triggerSensor() {
         try {
-            Thread.sleep(2);
             triggerPin.high();
             Thread.sleep(0, 12000);
             triggerPin.low();
@@ -58,7 +61,7 @@ public class HCSR04USDistance {
         }
     }
 
-    private final static Object distLocker = new Object();
+    private final Object distLocker = new Object();
 
     public long getCurrentDistance() {
         synchronized (distLocker) {
@@ -66,15 +69,14 @@ public class HCSR04USDistance {
         }
     }
 
-    @Scheduled(initialDelay = 10000, fixedRateString = "${hcsr04.measurement.delay:500}")
+    @Scheduled(initialDelay = 10000, fixedRateString = "${hcsr04.measurement.delay:300}")
     protected void distanceMeasurementTask() throws InterruptedException {
 
         final Future<Long> future = te.submit(this::measureDistance);
 
         long localDistance = 0;
         try {
-            localDistance = future.get(1, TimeUnit.SECONDS);
-            log.info("Measure distance: {}", localDistance);
+            localDistance = future.get(measurementTimeout, TimeUnit.MILLISECONDS);
             synchronized (distLocker) {
                 distanceMillimeter = localDistance;
             }

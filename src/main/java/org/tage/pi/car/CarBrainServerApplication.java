@@ -49,6 +49,11 @@ public class CarBrainServerApplication {
         return new HCSR04USDistance(14, 10, gpio);
     }
 
+    @Bean(name = "RearCollisionDetector")
+    public HCSR04USDistance rearCollisionDetector() {
+        return new HCSR04USDistance(13,6, gpio);
+    }
+
     @Bean
     public GpioController gpio() {
         return GpioFactory.getInstance();
