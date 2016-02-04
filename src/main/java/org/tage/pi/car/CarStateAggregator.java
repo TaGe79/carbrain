@@ -9,16 +9,18 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class CarStateAggregator {
-    private long speed = 0;
+  private long speed = 0;
 
-    private Direction moving = Direction.NO;
+  private Direction moving = Direction.NO;
 
-    private Direction turning = Direction.NO;
+  private Direction turning = Direction.NO;
 
-    private boolean frontCollisionWarning = false;
+  private boolean frontCollisionWarning = false;
 
-    private boolean rearCollisionWarning = false;
+  private boolean rearCollisionDetector = false;
+  
+  private boolean rearCollisionWarning = false;
 
-    private boolean frontLight = false;
+  private boolean frontLight = false;
 
 }

@@ -20,71 +20,74 @@ import javax.annotation.PostConstruct;
 @Component
 public class CarEngine implements ApplicationListener<ApplicationContextEvent> {
 
-    @Getter
-    @Autowired
-    @Qualifier("FrontLightController")
-    LightController frontLight;
+  @Getter
+  @Autowired
+  @Qualifier("FrontLightController")
+  LightController frontLight;
 
-    @Getter
-    @Autowired
-    SteeringServo steeringServo;
+  @Getter
+  @Autowired
+  SteeringServo steeringServo;
 
-    @Getter
-    @Autowired
-    CarMotor motor;
+  @Getter
+  @Autowired
+  CarMotor motor;
 
-    @Getter
-    @Autowired
-    @Qualifier("FrontCollisionDetector")
-    HCSR04USDistance frontCollisionDetector;
+  @Getter
+  @Autowired
+  @Qualifier("FrontCollisionDetector")
+  HCSR04USDistance frontCollisionDetector;
 
-    @Getter
-    @Autowired
-    @Qualifier("RearCollisionDetector")
-    HCSR04USDistance rearCollisionDetector;
+  @Getter
+  @Autowired
+  @Qualifier("RearCollisionDetector")
+  HCSR04USDistance rearCollisionDetector;
 
-    @Getter
-    @Autowired
-    CarStateAggregator carStateAggregator;
+  @Getter
+  @Autowired
+  CarStateAggregator carStateAggregator;
 
-    @PostConstruct
-    protected void initialize() {
-        frontLight.setStateChangeHandler(carStateAggregator::setFrontLight);
+  @PostConstruct
+  protected void initialize() {
+    frontLight.setStateChangeHandler(carStateAggregator::setFrontLight);
 
-        motor.setDirectionStateChangeHandler(carStateAggregator::setMoving);
-        motor.setSpeedStateChangeHandler(carStateAggregator::setSpeed);
+    motor.setDirectionStateChangeHandler(carStateAggregator::setMoving);
+    motor.setSpeedStateChangeHandler(carStateAggregator::setSpeed);
 
-        steeringServo.setDirectionStateChangeHandler(carStateAggregator::setTurning);
+    steeringServo.setDirectionStateChangeHandler(carStateAggregator::setTurning);
+  }
+
+  @Override
+  public void onApplicationEvent(ApplicationContextEvent contextEvent) {
+    if (contextEvent instanceof ContextClosedEvent) {
+      steeringServo.turnStraight();
+      frontLight.off();
+    }
+  }
+
+  @Scheduled(initialDelay = 10000, fixedDelayString = "${car.engine.collision.avoidance.task.delay:1000}")
+  protected void collisionAvoidanceTask() throws InterruptedException {
+
+    final long frontObstacleDistance = frontCollisionDetector.getCurrentDistance();
+    final long rearObstacleDistance =
+      carStateAggregator.getMoving() == Direction.FORWARD ? -1 : rearCollisionDetector.getCurrentDistance();
+
+    if (frontObstacleDistance < 130) {
+      log.info("Front collision warning. Distance: {}", frontObstacleDistance);
+      carStateAggregator.setFrontCollisionWarning(true);
+      frontLight.on();
+    } else {
+      frontLight.off();
+      carStateAggregator.setFrontCollisionWarning(false);
     }
 
-    @Override
-    public void onApplicationEvent(ApplicationContextEvent contextEvent) {
-        if (contextEvent instanceof ContextClosedEvent) {
-            steeringServo.turnStraight();
-            frontLight.off();
-        }
+    carStateAggregator.setRearCollisionDetector(rearObstacleDistance != -1);
+
+    if (rearObstacleDistance > -1 && rearObstacleDistance < 170) {
+      log.info("Rear collision warning. Distance: {}", rearObstacleDistance);
+      carStateAggregator.setRearCollisionWarning(true);
+    } else {
+      carStateAggregator.setRearCollisionWarning(false);
     }
-
-    @Scheduled(initialDelay = 10000, fixedDelayString = "${car.engine.collision.avoidance.task.delay:1000}")
-    protected void collisionAvoidanceTask() throws InterruptedException {
-
-        final long frontObstacleDistance = frontCollisionDetector.getCurrentDistance();
-        final long rearObstacleDistance = rearCollisionDetector.getCurrentDistance();
-
-        if (frontObstacleDistance < 130) {
-            log.info("Front collision warning. Distance: {}", frontObstacleDistance);
-            carStateAggregator.setFrontCollisionWarning(true);
-            frontLight.on();
-        } else {
-            frontLight.off();
-            carStateAggregator.setFrontCollisionWarning(false);
-        }
-
-        if (rearObstacleDistance < 170) {
-            log.info("Rear collision warning. Distance: {}", rearObstacleDistance);
-            carStateAggregator.setRearCollisionWarning(true);
-        } else {
-            carStateAggregator.setRearCollisionWarning(false);
-        }
-    }
+  }
 }

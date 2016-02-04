@@ -2,7 +2,10 @@ var serverAddress = window.location.href.split("/")[0] + "//" + window.location.
 var servoOffset;
 
 $(document).ready(function () {
-  $.get(serverAddress + "/car/calibration", function(data,status) {
+  const $rearCollisionWarning = $("#rear_collision_warning");
+  const $rearObstacleDistanceValue = $("#rear_obstacle_distance_value");
+
+  $.get(serverAddress + "/car/calibration", function (data, status) {
     servoOffset = Number.parseInt(data);
     $("#offset_value").text(data);
   });
@@ -10,81 +13,108 @@ $(document).ready(function () {
   window.addEventListener("keydown", keyDown, false);
   window.addEventListener("keyup", keyUp, false);
 
-  $('#offset_add').mouseup(function() {
+  $('#offset_add').mouseup(function () {
     servoOffset += 5;
     $.ajax({
-      url:'http://192.168.0.15:8090/car/calibration',
+      url: 'http://192.168.0.15:8090/car/calibration',
       method: 'POST',
       contentType: 'application/json',
-      data: JSON.stringify(servoOffset)}).done(function(data) {
-        $("#offset_value").text(data);
-      });
+      data: JSON.stringify(servoOffset)
+    }).done(function (data) {
+      $("#offset_value").text(data);
+    });
   });
 
-  $('#offset_sub').mouseup(function() {
+  $('#offset_sub').mouseup(function () {
     servoOffset -= 5;
     $.ajax({
-      url:'http://192.168.0.15:8090/car/calibration',
+      url: 'http://192.168.0.15:8090/car/calibration',
       method: 'POST',
       contentType: 'application/json',
-      data: JSON.stringify(servoOffset)}).done(function(data) {
-        $("#offset_value").text(data);
-      });
+      data: JSON.stringify(servoOffset)
+    }).done(function (data) {
+      $("#offset_value").text(data);
+    });
   });
 
-  setInterval(function() {
+  setInterval(function () {
     getObstacleInfo("front");
-    getObstacleInfo("rear");
+    if (getDetectorState("rear")) {
+      getObstacleInfo("rear");
+    } else {
+      $rearObstacleDistanceValue.text('----- mm');
+      $rearCollisionWarning.removeClass('show');
+      $rearCollisionWarning.addClass('hide');
+    }
+
   }, 500);
 
-  $('#turn_left').mousedown(function () {
+  const $turnLeftBtn = $('#turn_left');
+  const $turnRightBtn = $('#turn_right');
+  const $accelerateBtn = $('#accelerate');
+  const $decelerateBtn = $('#decelerate');
+  const $stopBtn = $('#stop');
+  const $frontLightBtn = $('#front_light');
+
+  $turnLeftBtn.mousedown(function () {
     keyDown({keyCode: 37});
   });
-  $('#turn_right').mousedown(function () {
+  $turnRightBtn.mousedown(function () {
     keyDown({keyCode: 39});
   });
-  $('#accelerate').mousedown(function () {
+  $accelerateBtn.mousedown(function () {
     keyDown({keyCode: 38});
   });
-  $('#decelerate').mousedown(function () {
+  $decelerateBtn.mousedown(function () {
     keyDown({keyCode: 40});
   });
-  $('#stop').mousedown(function () {
+  $stopBtn.mousedown(function () {
     keyDown({keyCode: 96});
   });
-  $('#front_light').mousedown(function () {
+  $frontLightBtn.mousedown(function () {
     keyDown({keyCode: 76});
   });
 
-  $('#front_light').mouseup(function () {
+  $frontLightBtn.mouseup(function () {
     keyUp({keyCode: 76});
   });
-  $('#turn_left').mouseup(function () {
+  $turnLeftBtn.mouseup(function () {
     keyUp({keyCode: 37});
   });
-  $('#turn_right').mouseup(function () {
+  $turnRightBtn.mouseup(function () {
     keyUp({keyCode: 39});
   });
-  $('#accelerate').mouseup(function () {
+  $accelerateBtn.mouseup(function () {
     keyUp({keyCode: 38});
   });
-  $('#decelerate').mouseup(function () {
+  $decelerateBtn.mouseup(function () {
     keyUp({keyCode: 40});
   });
-  $('#stop').mouseup(function () {
+  $stopBtn.mouseup(function () {
     keyUp({keyCode: 96});
   });
 
 });
 
+function getDetectorState(position) {
+  var res = false;
+  $.get(serverAddress + "/car/" + position + "/collision/detector/operation", function (data) {
+      res = data;
+    }
+  );
+
+  return res;
+}
+
 function getObstacleInfo(position) {
-    $.get(serverAddress + "/car/"+position+"/collision/state", function(data) {
-      $("#"+position+"_collision_warning").removeClass(data === true ? 'hide' : 'show');
-      $("#"+position+"_collision_warning").addClass(data === true ? 'show' : 'hide');
-    });
-    $.get(serverAddress + "/car/"+position+"/obstacle/distance", function(data) {
-      $("#"+position+"_obstacle_distance_value").text(data+" mm");
-    });
+  $.get(serverAddress + "/car/" + position + "/collision/state", function (data) {
+    const $warnIndicator = $("#" + position + "_collision_warning");
+    $warnIndicator.removeClass(data === true ? 'hide' : 'show');
+    $warnIndicator.addClass(data === true ? 'show' : 'hide');
+  });
+  $.get(serverAddress + "/car/" + position + "/obstacle/distance", function (data) {
+    $("#" + position + "_obstacle_distance_value").text(data + " mm");
+  });
 }
 
 function sendCommand(command) {
@@ -181,7 +211,9 @@ var commandMap = {
           }
         }, 1000);
       },
-      onReverse: function() {sendCommand("stop");}
+      onReverse: function () {
+        sendCommand("stop");
+      }
     },
     {
       command: 'backward',
@@ -226,7 +258,9 @@ var commandMap = {
           }
         }, 1000);
       },
-      onReverse: function() {sendCommand("stop");}
+      onReverse: function () {
+        sendCommand("stop");
+      }
     },
     {
       command: 'left',
@@ -323,7 +357,7 @@ var commandMap = {
         console.log('do nothing');
       }
     }]
-}
+};
 
 function keyDown(e) {
   console.log('bubu');
