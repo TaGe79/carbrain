@@ -11,7 +11,6 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -31,50 +30,55 @@ import javax.annotation.PostConstruct;
 @EnableAutoConfiguration
 public class CarBrainServerApplication {
 
-    @PostConstruct
-    protected void init() {
-        log.info("Car brain started!");
-    }
+  @PostConstruct
+  protected void init() {
+    log.info("Car brain started!");
+  }
 
-    @Autowired
-    private GpioController gpio;
+  @Autowired
+  private GpioController gpio;
 
-    @Bean(name = "FrontLightController")
-    public LightController frontLightController() {
-        return new LightController(1);
-    }
+  @Bean(name = "FrontLightController")
+  public LightController frontLightController() {
+    return new LightController(1);
+  }
 
-    @Bean(name = "FrontCollisionDetector")
-    public HCSR04USDistance frontCollisionDetector() {
-        return new HCSR04USDistance(14, 10, gpio);
-    }
+  @Bean(name = "FrontLeftCollisionDetector")
+  public HCSR04USDistance frontCollisionDetector() {
+    return new HCSR04USDistance("frontLeft", 14, 10, gpio);
+  }
 
-    @Bean(name = "RearCollisionDetector")
-    public HCSR04USDistance rearCollisionDetector() {
-        return new HCSR04USDistance(13,6, gpio);
-    }
+  @Bean(name = "FrontRightCollisionDetector")
+  public HCSR04USDistance frontRightCollisionDetector() {
+    return new HCSR04USDistance("frontRight ", 22, 26, gpio);
+  }
 
-    @Bean
-    public GpioController gpio() {
-        return GpioFactory.getInstance();
-    }
+  @Bean(name = "RearCollisionDetector")
+  public HCSR04USDistance rearCollisionDetector() {
+    return new HCSR04USDistance("rear", 13, 6, gpio);
+  }
 
-    @Bean
-    public TaskScheduler taskScheduler() {
-        final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-        taskScheduler.setThreadNamePrefix("car-tasks");
-        taskScheduler.setPoolSize(5);
-        taskScheduler.afterPropertiesSet();
-        return taskScheduler;
-    }
+  @Bean
+  public GpioController gpio() {
+    return GpioFactory.getInstance();
+  }
 
-    @Bean
-    public AsyncTaskExecutor taskExevutor() {
-        final AsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
-        return taskExecutor;
-    }
+  @Bean
+  public TaskScheduler taskScheduler() {
+    final ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
+    taskScheduler.setThreadNamePrefix("car-tasks");
+    taskScheduler.setPoolSize(5);
+    taskScheduler.afterPropertiesSet();
+    return taskScheduler;
+  }
 
-    public static void main(String[] args) {
-        SpringApplication.run(CarBrainServerApplication.class, args);
-    }
+  @Bean
+  public AsyncTaskExecutor taskExevutor() {
+    final AsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+    return taskExecutor;
+  }
+
+  public static void main(String[] args) {
+    SpringApplication.run(CarBrainServerApplication.class, args);
+  }
 }

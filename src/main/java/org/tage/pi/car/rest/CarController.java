@@ -106,7 +106,7 @@ public class CarController {
   public long getFrontObstacleDistance(@PathVariable("position") String position) {
     switch (position) {
       case "front":
-        return engine.getFrontCollisionDetector().getCurrentDistance();
+        return engine.getFrontLeftCollisionDetector().getCurrentDistance();
       case "rear":
         return engine.getRearCollisionDetector().getCurrentDistance();
       default:
