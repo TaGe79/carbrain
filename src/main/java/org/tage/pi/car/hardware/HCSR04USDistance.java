@@ -41,32 +41,22 @@ public class HCSR04USDistance {
   @Autowired
   protected AsyncTaskExecutor te;
 
+  private final Object locker = new Object();
 
   @PostConstruct
   protected void initialize() throws InterruptedException {
     triggerPin = gpio.provisionDigitalOutputPin(RaspiPin.getPinByName("GPIO " + triggerGpioPort),
-      "HCSR04_Trigger", PinState.LOW);
+        "HCSR04_Trigger", PinState.LOW);
     echoPin = gpio.provisionDigitalInputPin(RaspiPin.getPinByName("GPIO " + echoGpioPort),
-      "HCSR04_Echo", PinPullResistance.PULL_DOWN);
-
-    Thread.sleep(2);
+        "HCSR04_Echo", PinPullResistance.PULL_DOWN);
 
     log.info("Distance controller initialized with trigger: {} and echo: {}", triggerPin, echoPin);
-    triggerSensor();
-  }
-
-  private void triggerSensor() {
-    try {
-      triggerPin.high();
-      Thread.sleep(0, 18000);
-      triggerPin.low();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
   }
 
   public long getCurrentDistance() {
-    return distanceMillimeter;
+    synchronized (locker) {
+      return distanceMillimeter;
+    }
   }
 
   @Scheduled(initialDelay = 10000, fixedRateString = "${hcsr04.measurement.delay:300}")
@@ -75,27 +65,39 @@ public class HCSR04USDistance {
     final Future<Long> future = te.submit(this::measureDistance);
 
     try {
-      distanceMillimeter = future.get(measurementTimeout, TimeUnit.MILLISECONDS);
+      synchronized (locker) {
+        distanceMillimeter = future.get(measurementTimeout, TimeUnit.MILLISECONDS);
+      }
     } catch (Exception e) {
       log.error("Can't finish distance measurement: {}!", name);
-      distanceMillimeter = 222;
+      distanceMillimeter = 999;
       Thread.sleep(200);
     }
   }
 
-  private long measureDistance() {
-    triggerSensor();
+  long echoReceivedTime = 0;
+  long echoDuration = 0;
 
-    while (echoPin.getState() == PinState.LOW) {
+  private long measureDistance() {
+    try {
+      triggerPin.low();
+      Thread.sleep(0, 2000);
+      triggerPin.high();
+      Thread.sleep(0, 12000);
+      triggerPin.low();
+      echoReceivedTime = System.nanoTime();
+      //noinspection StatementWithEmptyBody
+      while (echoPin.getState() == PinState.HIGH) {
+      }
+      echoDuration = System.nanoTime() - echoReceivedTime;
+    } catch (InterruptedException e) {
+      e.printStackTrace();
     }
-    final long echoReceivedTime = System.nanoTime();
-    while (echoPin.getState() == PinState.HIGH) {
-    }
-    return calculateDistance(System.nanoTime() - echoReceivedTime);
+    return calculateDistance();
   }
 
-  private long calculateDistance(long timeInNanoSec) {
-    return Double.valueOf(Math.floor((SOUND_SPEED * (timeInNanoSec * 1.0 / 1000000000.0))) / 2.0).longValue();
-//        return Double.valueOf(Math.ceil(timeInNanoSec / 5800.0)).longValue();
+  private long calculateDistance() {
+    //return Double.valueOf(Math.floor((SOUND_SPEED * (timeInNanoSec * 1.0 / 1000000000.0))) / 2.0).longValue();
+    return (long) Math.ceil(echoDuration / 100.0 / 29.0 / 2.0);
   }
 }

@@ -70,7 +70,7 @@ public class CarEngine implements ApplicationListener<ApplicationContextEvent> {
     }
   }
 
-  @Scheduled(initialDelay = 10000, fixedDelayString = "${car.engine.collision.avoidance.task.delay:500}")
+  @Scheduled(initialDelay = 10000, fixedDelayString = "${car.engine.collision.avoidance.task.delay:200}")
   protected void collisionAvoidanceTask() throws InterruptedException {
 
     final long frontLeftObstacleDistance = frontLeftCollisionDetector.getCurrentDistance();
@@ -79,17 +79,16 @@ public class CarEngine implements ApplicationListener<ApplicationContextEvent> {
       carStateAggregator.getMoving() == Direction.FORWARD ? -1 : rearCollisionDetector.getCurrentDistance();
     carStateAggregator.setRearCollisionDetector(carStateAggregator.getMoving() != Direction.FORWARD);
 
-    if (frontLeftObstacleDistance < 130 || frontRightObstacleDistance < 130) {
-      log.info("Front collision warning. Distance: L({}) R({})", frontLeftObstacleDistance, frontRightObstacleDistance);
+    log.debug("Front distance: L({}) R({})", frontLeftObstacleDistance, frontRightObstacleDistance);
+    log.debug("Rear distance: {}", rearObstacleDistance);
+
+    if (frontLeftObstacleDistance < 100 || frontRightObstacleDistance < 100) {
       carStateAggregator.setFrontCollisionWarning(true);
     } else {
       carStateAggregator.setFrontCollisionWarning(false);
     }
 
-    carStateAggregator.setRearCollisionDetector(rearObstacleDistance != -1);
-
-    if (rearObstacleDistance > -1 && rearObstacleDistance < 170) {
-      log.info("Rear collision warning. Distance: {}", rearObstacleDistance);
+    if (rearObstacleDistance < 160) {
       carStateAggregator.setRearCollisionWarning(true);
     } else {
       carStateAggregator.setRearCollisionWarning(false);

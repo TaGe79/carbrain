@@ -16,7 +16,7 @@ $(document).ready(function () {
   $('#offset_add').mouseup(function () {
     servoOffset += 5;
     $.ajax({
-      url: 'http://192.168.0.15:8090/car/calibration',
+      url: serverAddress+'/car/calibration',
       method: 'POST',
       contentType: 'application/json',
       data: JSON.stringify(servoOffset)
@@ -28,7 +28,7 @@ $(document).ready(function () {
   $('#offset_sub').mouseup(function () {
     servoOffset -= 5;
     $.ajax({
-      url: 'http://192.168.0.15:8090/car/calibration',
+      url: serverAddress+'/car/calibration',
       method: 'POST',
       contentType: 'application/json',
       data: JSON.stringify(servoOffset)
@@ -39,14 +39,15 @@ $(document).ready(function () {
 
   setInterval(function () {
     getObstacleInfo("front");
-    if (getDetectorState("rear")) {
-      getObstacleInfo("rear");
-    } else {
-      $rearObstacleDistanceValue.text('----- mm');
-      $rearCollisionWarning.removeClass('show');
-      $rearCollisionWarning.addClass('hide');
-    }
-
+    getDetectorState("rear", function(state){
+      if (state === true ) {
+        getObstacleInfo("rear");
+      } else {
+        $rearObstacleDistanceValue.text('----- mm');
+        $rearCollisionWarning.removeClass('show');
+        $rearCollisionWarning.addClass('hide');
+      }
+    });
   }, 500);
 
   const $turnLeftBtn = $('#turn_left');
@@ -96,14 +97,12 @@ $(document).ready(function () {
 
 });
 
-function getDetectorState(position) {
-  var res = false;
+function getDetectorState(position, callback) {
   $.get(serverAddress + "/car/" + position + "/collision/detector/operation", function (data) {
-      res = data;
+      console.log(position+" detector state: "+data);
+      callback(data);
     }
   );
-
-  return res;
 }
 
 function getObstacleInfo(position) {
