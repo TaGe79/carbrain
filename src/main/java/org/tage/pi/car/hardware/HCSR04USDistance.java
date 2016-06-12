@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class HCSR04USDistance {
+public class HCSR04USDistance implements DistanceProvider {
 
   protected final String name;
 
@@ -33,7 +33,7 @@ public class HCSR04USDistance {
 
   protected GpioPinDigitalInput echoPin;
 
-  protected volatile long distanceMillimeter = 999;
+  protected volatile int distanceMillimeter = 999;
 
   @Value("${hcsr04.measurement.timeout:700}")
   protected long measurementTimeout;
@@ -53,7 +53,7 @@ public class HCSR04USDistance {
     log.info("Distance controller initialized with trigger: {} and echo: {}", triggerPin, echoPin);
   }
 
-  public long getCurrentDistance() {
+  public int getCurrentDistance() {
     synchronized (locker) {
       return distanceMillimeter;
     }
@@ -62,7 +62,7 @@ public class HCSR04USDistance {
   @Scheduled(initialDelay = 10000, fixedRateString = "${hcsr04.measurement.delay:300}")
   protected void distanceMeasurementTask() throws InterruptedException {
 
-    final Future<Long> future = te.submit(this::measureDistance);
+    final Future<Integer> future = te.submit(this::measureDistance);
 
     try {
       synchronized (locker) {
@@ -78,7 +78,7 @@ public class HCSR04USDistance {
   long echoReceivedTime = 0;
   long echoDuration = 0;
 
-  private long measureDistance() {
+  private int measureDistance() {
     try {
       triggerPin.low();
       Thread.sleep(0, 2000);
@@ -96,8 +96,8 @@ public class HCSR04USDistance {
     return calculateDistance();
   }
 
-  private long calculateDistance() {
+  private int calculateDistance() {
     //return Double.valueOf(Math.floor((SOUND_SPEED * (timeInNanoSec * 1.0 / 1000000000.0))) / 2.0).longValue();
-    return (long) Math.ceil(echoDuration / 100.0 / 29.0 / 2.0);
+    return (int) Math.ceil(echoDuration / 100.0 / 29.0 / 2.0);
   }
 }

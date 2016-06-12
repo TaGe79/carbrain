@@ -14,6 +14,8 @@ import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.tage.pi.car.hardware.ArduinoDistanceUnitDriver;
+import org.tage.pi.car.hardware.DistanceProvider;
 import org.tage.pi.car.hardware.HCSR04USDistance;
 
 import javax.annotation.PostConstruct;
@@ -43,19 +45,24 @@ public class CarBrainServerApplication {
     return new LightController(1);
   }
 
-  @Bean(name = "FrontLeftCollisionDetector")
-  public HCSR04USDistance frontCollisionDetector() {
-    return new HCSR04USDistance("frontLeft", 14, 10, gpio);
-  }
+//  @Bean(name = "FrontLeftCollisionDetector")
+//  public HCSR04USDistance frontCollisionDetector() {
+//    return new HCSR04USDistance("frontLeft", 14, 10, gpio);
+//  }
+//
+//  @Bean(name = "FrontRightCollisionDetector")
+//  public HCSR04USDistance frontRightCollisionDetector() {
+//    return new HCSR04USDistance("frontRight ", 22, 26, gpio);
+//  }
+//
+//  @Bean(name = "RearCollisionDetector")
+//  public HCSR04USDistance rearCollisionDetector() {
+//    return new HCSR04USDistance("rear", 13, 6, gpio);
+//  }
 
-  @Bean(name = "FrontRightCollisionDetector")
-  public HCSR04USDistance frontRightCollisionDetector() {
-    return new HCSR04USDistance("frontRight ", 22, 26, gpio);
-  }
-
-  @Bean(name = "RearCollisionDetector")
-  public HCSR04USDistance rearCollisionDetector() {
-    return new HCSR04USDistance("rear", 13, 6, gpio);
+  @Bean(name = {"FrontLeftCollisionDetector","FrontRightCollisionDetector","RearCollisionDetector"})
+  public DistanceProvider arduinoCollisionDetector() {
+    return new ArduinoDistanceUnitDriver();
   }
 
   @Bean
@@ -73,7 +80,7 @@ public class CarBrainServerApplication {
   }
 
   @Bean
-  public AsyncTaskExecutor taskExevutor() {
+  public AsyncTaskExecutor taskExecutor() {
     final AsyncTaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
     return taskExecutor;
   }

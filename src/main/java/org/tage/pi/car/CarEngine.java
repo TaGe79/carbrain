@@ -9,6 +9,7 @@ import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.tage.pi.car.hardware.DistanceProvider;
 import org.tage.pi.car.hardware.HCSR04USDistance;
 
 import javax.annotation.PostConstruct;
@@ -36,17 +37,17 @@ public class CarEngine implements ApplicationListener<ApplicationContextEvent> {
   @Getter
   @Autowired
   @Qualifier("FrontLeftCollisionDetector")
-  HCSR04USDistance frontLeftCollisionDetector;
+  DistanceProvider frontLeftCollisionDetector;
 
   @Getter
   @Autowired
   @Qualifier("FrontRightCollisionDetector")
-  HCSR04USDistance frontRightCollisionDetector;
+  DistanceProvider frontRightCollisionDetector;
 
   @Getter
   @Autowired
   @Qualifier("RearCollisionDetector")
-  HCSR04USDistance rearCollisionDetector;
+  DistanceProvider rearCollisionDetector;
 
   @Getter
   @Autowired
