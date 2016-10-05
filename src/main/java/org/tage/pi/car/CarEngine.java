@@ -4,13 +4,13 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ApplicationContextEvent;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.tage.pi.car.hardware.DistanceProvider;
-import org.tage.pi.car.hardware.HCSR04USDistance;
 
 import javax.annotation.PostConstruct;
 
@@ -53,6 +53,12 @@ public class CarEngine implements ApplicationListener<ApplicationContextEvent> {
   @Autowired
   CarStateAggregator carStateAggregator;
 
+  @Value("${car.front.obstacle.warning.distance:10}")
+  long frontObstacleWarningDistance;
+
+  @Value("${car.rear.obstacle.warning.distance:16}")
+  long rearObstacleWarningDistance;
+
   @PostConstruct
   protected void initialize() {
     frontLight.setStateChangeHandler(carStateAggregator::setFrontLight);
@@ -61,17 +67,20 @@ public class CarEngine implements ApplicationListener<ApplicationContextEvent> {
     motor.setSpeedStateChangeHandler(carStateAggregator::setSpeed);
 
     steeringServo.setDirectionStateChangeHandler(carStateAggregator::setTurning);
+
+    carStateAggregator.setFrontObstacle(ObstaclePosition.NONE);
   }
 
   @Override
   public void onApplicationEvent(ApplicationContextEvent contextEvent) {
     if (contextEvent instanceof ContextClosedEvent) {
+      motor.stop();
       steeringServo.turnStraight();
       frontLight.off();
     }
   }
 
-  @Scheduled(initialDelay = 10000, fixedDelayString = "${car.engine.collision.avoidance.task.delay:200}")
+  @Scheduled(initialDelay = 10000, fixedDelayString = "${car.engine.collision.avoidance.task.delay:500}")
   protected void collisionAvoidanceTask() throws InterruptedException {
 
     final long frontLeftObstacleDistance = frontLeftCollisionDetector.getCurrentDistance();
@@ -80,16 +89,36 @@ public class CarEngine implements ApplicationListener<ApplicationContextEvent> {
       carStateAggregator.getMoving() == Direction.FORWARD ? -1 : rearCollisionDetector.getCurrentDistance();
     carStateAggregator.setRearCollisionDetector(carStateAggregator.getMoving() != Direction.FORWARD);
 
-    log.debug("Front distance: L({}) R({})", frontLeftObstacleDistance, frontRightObstacleDistance);
+    log.info("Front distance: L({}) R({})", frontLeftObstacleDistance, frontRightObstacleDistance);
     log.debug("Rear distance: {}", rearObstacleDistance);
 
-    if (frontLeftObstacleDistance < 100 || frontRightObstacleDistance < 100) {
-      carStateAggregator.setFrontCollisionWarning(true);
-    } else {
-      carStateAggregator.setFrontCollisionWarning(false);
+    if ( frontLeftObstacleDistance < 0 || frontRightObstacleDistance < 0 ) {
+      log.info("Waiting for the collision detector to active");
+      return;
     }
 
-    if (rearObstacleDistance < 160) {
+    if (frontLeftObstacleDistance < frontObstacleWarningDistance || frontRightObstacleDistance < frontObstacleWarningDistance) {
+      carStateAggregator.setFrontCollisionWarning(true);
+      if ( frontLeftObstacleDistance < frontObstacleWarningDistance && frontRightObstacleDistance < frontObstacleWarningDistance ) {
+        log.info("Frontal collision warning");
+        carStateAggregator.setFrontObstacle(ObstaclePosition.BOTH);
+      } else {
+        if (frontLeftObstacleDistance < frontObstacleWarningDistance ) {
+          log.info("Frontal LEFT collision warning");
+          carStateAggregator.setFrontObstacle(ObstaclePosition.LEFT);
+        }
+
+        if (frontRightObstacleDistance < frontObstacleWarningDistance ){
+          log.info("Frontal RIGHT collision warning");
+          carStateAggregator.setFrontObstacle(ObstaclePosition.RIGHT);
+        }
+      }
+    } else {
+      carStateAggregator.setFrontCollisionWarning(false);
+      carStateAggregator.setFrontObstacle(ObstaclePosition.NONE);
+    }
+
+    if (rearObstacleDistance < rearObstacleWarningDistance) {
       carStateAggregator.setRearCollisionWarning(true);
     } else {
       carStateAggregator.setRearCollisionWarning(false);

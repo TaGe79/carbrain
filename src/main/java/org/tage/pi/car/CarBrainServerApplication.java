@@ -45,26 +45,20 @@ public class CarBrainServerApplication {
     return new LightController(1);
   }
 
-//  @Bean(name = "FrontLeftCollisionDetector")
-//  public HCSR04USDistance frontCollisionDetector() {
-//    return new HCSR04USDistance("frontLeft", 14, 10, gpio);
-//  }
-//
-//  @Bean(name = "FrontRightCollisionDetector")
-//  public HCSR04USDistance frontRightCollisionDetector() {
-//    return new HCSR04USDistance("frontRight ", 22, 26, gpio);
-//  }
-//
-//  @Bean(name = "RearCollisionDetector")
-//  public HCSR04USDistance rearCollisionDetector() {
-//    return new HCSR04USDistance("rear", 13, 6, gpio);
-//  }
-
-  @Bean(name = {"FrontLeftCollisionDetector","FrontRightCollisionDetector","RearCollisionDetector"})
-  public DistanceProvider arduinoCollisionDetector() {
-    return new ArduinoDistanceUnitDriver();
+  @Bean(name = "FrontLeftCollisionDetector")
+  public DistanceProvider arduinoFLCollisionDetector() {
+    return new ArduinoDistanceUnitDriver(Direction.LEFT);
   }
 
+  @Bean(name = "FrontRightCollisionDetector")
+  public DistanceProvider arduinoFRCollisionDetector() {
+    return new ArduinoDistanceUnitDriver(Direction.RIGHT);
+  }
+
+  @Bean(name = "RearCollisionDetector")
+  public DistanceProvider arduinoRCollisionDetector() {
+    return new ArduinoDistanceUnitDriver(Direction.BACKWARD);
+  }
   @Bean
   public GpioController gpio() {
     return GpioFactory.getInstance();

@@ -8,10 +8,9 @@ import lombok.Getter;
 import lombok.Synchronized;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.tage.pi.car.Direction;
 
-/**
- * Created by tgergel on 24/04/16.
- */
+
 @Slf4j
 public class ArduinoDistanceUnitDriver implements DistanceProvider {
 
@@ -23,8 +22,11 @@ public class ArduinoDistanceUnitDriver implements DistanceProvider {
   @Getter(onMethod = @__(@Synchronized))
   private volatile int rightDistance = -1;
 
-  public ArduinoDistanceUnitDriver() {
 
+  private final Direction distanceOrientation;
+
+  public ArduinoDistanceUnitDriver(final Direction distanceOrientation) {
+    this.distanceOrientation = distanceOrientation;
     serial = SerialFactory.createInstance();
 
     try {
@@ -36,6 +38,7 @@ public class ArduinoDistanceUnitDriver implements DistanceProvider {
     }
   }
 
+  @Synchronized
   private void distanceReceived(final SerialDataEvent sde) {
     log.info("Received distance: {}", sde);
 
@@ -51,8 +54,7 @@ public class ArduinoDistanceUnitDriver implements DistanceProvider {
     }
   }
 
-  @Synchronized
-  @Scheduled(initialDelay = 10000, fixedRateString = "${arduino.distance.measurement.delay:10000}")
+  @Scheduled(initialDelay = 10000, fixedRateString = "${arduino.distance.measurement.delay:300}")
   protected void requestDistance() {
     log.debug("Request distance");
     try {
@@ -65,6 +67,7 @@ public class ArduinoDistanceUnitDriver implements DistanceProvider {
   @Override
   @Synchronized
   public int getCurrentDistance() {
-    return leftDistance;
+    return distanceOrientation == Direction.LEFT ? leftDistance :
+        distanceOrientation == Direction.RIGHT ? rightDistance : 0;
   }
 }

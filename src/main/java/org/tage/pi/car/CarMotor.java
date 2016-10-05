@@ -110,7 +110,7 @@ public class CarMotor {
     }
 
     public void stop() {
-        motorPins.values().forEach(pin -> pin.low());
+        motorPins.values().forEach(GpioPinDigitalOutput::low);
 
         if (directionStateChangeHandler != null) directionStateChangeHandler.accept(Direction.NO);
     }
