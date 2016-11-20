@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.tage.pi.car.CarEngine;
+import org.tage.pi.car.DrivingAssistant;
 
 /**
  * Created by tgergel on 15/01/16.
@@ -17,6 +18,22 @@ import org.tage.pi.car.CarEngine;
 public class CarController {
 
   protected final CarEngine engine;
+  protected final DrivingAssistant drivingAssistant;
+
+  @RequestMapping(path = "assistant/{switch}", method = RequestMethod.GET)
+  @ResponseBody
+  public String switchDrivingAssistant(@PathVariable("switch") String switchValue) {
+    switch (switchValue.trim().toLowerCase()) {
+      case "on":
+        drivingAssistant.setAssistantState(true);
+        return "Driving assistant turned on";
+      case "off":
+        drivingAssistant.setAssistantState(false);
+        return "Driving assistant turned off";
+      default:
+        return "Don't understand: " + switchValue + "! Use on/off";
+    }
+  }
 
   @RequestMapping(path = "turn/{direction}", method = RequestMethod.GET)
   @ResponseBody

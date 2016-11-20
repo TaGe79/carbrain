@@ -1,6 +1,8 @@
 package org.tage.pi.car;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +36,10 @@ public class DrivingAssistant {
 
   private Direction currentDrivingDirection;
 
+  @Setter
+  @Getter
+  private boolean assistantState = false;
+
   @PostConstruct
   private void initialize() {
     this.currentSpeed = initialSpeed;
@@ -44,6 +50,10 @@ public class DrivingAssistant {
 
   @Scheduled(initialDelay = 10000, fixedRateString = "${car.driving.assistant.delay:100}")
   private void drivingAssistantTask() {
+    if (!assistantState) {
+      return;
+    }
+
     if (carEngine.getFrontLeftCollisionDetector().getCurrentDistance() < 0 ||
         carEngine.getFrontRightCollisionDetector().getCurrentDistance() < 0) {
       log.info("Waiting for the collision detectors to get activated");
@@ -85,7 +95,7 @@ public class DrivingAssistant {
 //      }
 //    }
 
-    if ( carEngine.getCarStateAggregator().getFrontObstacle() == ObstaclePosition.NONE ) {
+    if (carEngine.getCarStateAggregator().getFrontObstacle() == ObstaclePosition.NONE) {
       carEngine.getMotor().stop();
       currentDrivingDirection = Direction.FORWARD;
     }
