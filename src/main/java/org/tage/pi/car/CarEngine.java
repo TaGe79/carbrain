@@ -86,35 +86,38 @@ public class CarEngine implements ApplicationListener<ApplicationContextEvent> {
     final long frontLeftObstacleDistance = frontLeftCollisionDetector.getCurrentDistance();
     final long frontRightObstacleDistance = frontRightCollisionDetector.getCurrentDistance();
     final long rearObstacleDistance =
-      carStateAggregator.getMoving() == Direction.FORWARD ? -1 : rearCollisionDetector.getCurrentDistance();
+        carStateAggregator.getMoving() == Direction.FORWARD ? -1 : rearCollisionDetector.getCurrentDistance();
     carStateAggregator.setRearCollisionDetector(carStateAggregator.getMoving() != Direction.FORWARD);
 
     log.info("Front distance: L({}) R({})", frontLeftObstacleDistance, frontRightObstacleDistance);
     log.debug("Rear distance: {}", rearObstacleDistance);
 
-    if ( frontLeftObstacleDistance < 0 || frontRightObstacleDistance < 0 ) {
+    if (frontLeftObstacleDistance < 0 || frontRightObstacleDistance < 0) {
       log.info("Waiting for the collision detector to active");
       return;
     }
 
     if (frontLeftObstacleDistance < frontObstacleWarningDistance || frontRightObstacleDistance < frontObstacleWarningDistance) {
       carStateAggregator.setFrontCollisionWarning(true);
-      if ( frontLeftObstacleDistance < frontObstacleWarningDistance && frontRightObstacleDistance < frontObstacleWarningDistance ) {
+      if (frontLeftObstacleDistance < frontObstacleWarningDistance && frontRightObstacleDistance < frontObstacleWarningDistance) {
         log.info("Frontal collision warning");
         carStateAggregator.setFrontObstacle(ObstaclePosition.BOTH);
       } else {
-        if (frontLeftObstacleDistance < frontObstacleWarningDistance ) {
+        if (frontLeftObstacleDistance < frontObstacleWarningDistance) {
           log.info("Frontal LEFT collision warning");
           carStateAggregator.setFrontObstacle(ObstaclePosition.LEFT);
         }
 
-        if (frontRightObstacleDistance < frontObstacleWarningDistance ){
+        if (frontRightObstacleDistance < frontObstacleWarningDistance) {
           log.info("Frontal RIGHT collision warning");
           carStateAggregator.setFrontObstacle(ObstaclePosition.RIGHT);
         }
       }
     } else {
       carStateAggregator.setFrontCollisionWarning(false);
+      if (carStateAggregator.getFrontObstacle() != ObstaclePosition.NONE) {
+        log.info("Release frontal collision warning");
+      }
       carStateAggregator.setFrontObstacle(ObstaclePosition.NONE);
     }
 
