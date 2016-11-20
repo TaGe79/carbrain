@@ -40,23 +40,23 @@ public class ArduinoDistanceUnitDriver implements DistanceProvider {
 
   @Synchronized
   private void distanceReceived(final SerialDataEvent sde) {
-    log.info("Received distance: {}", sde);
+    log.debug("Received distance: {}", sde);
 
     byte[] dataBytes = sde.getData().getBytes();
-    log.debug("--> rcv data size: {}", dataBytes.length);
+    log.trace("--> rcv data size: {}", dataBytes.length);
 
     if (dataBytes.length == 4) {
       leftDistance = (dataBytes[1] << 8 | dataBytes[0]);
       rightDistance = (dataBytes[3] << 8 | dataBytes[2]);
 
-      log.info("Left distance: {}", leftDistance);
-      log.info("Right distance: {}", rightDistance);
+      log.debug("Left distance: {}", leftDistance);
+      log.debug("Right distance: {}", rightDistance);
     }
   }
 
   @Scheduled(initialDelay = 10000, fixedRateString = "${arduino.distance.measurement.delay:300}")
   protected void requestDistance() {
-    log.debug("Request distance");
+    log.trace("Request distance");
     try {
       serial.writeln("A"); // request distance from all sensors
     } catch (SerialPortException e) {

@@ -127,9 +127,19 @@ public class DrivingAssistant {
           if (carEngine.getCarStateAggregator().getFrontObstacle() == ObstaclePosition.LEFT) {
             log.info("Driving forward, obstacle at the left!");
             carEngine.getSteeringServo().turnRight();
+            try {
+              Thread.currentThread().sleep(800l);
+            } catch (InterruptedException e) {
+              e.printStackTrace();
+            }
           } else {
             log.info("Driving forward, obstacle at the right!");
             carEngine.getSteeringServo().turnLeft();
+            try {
+              Thread.currentThread().sleep(800l);
+            } catch (InterruptedException e) {
+              e.printStackTrace();
+            }
           }
         }
 

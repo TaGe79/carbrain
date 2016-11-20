@@ -28,6 +28,8 @@ public class CarController {
         drivingAssistant.setAssistantState(true);
         return "Driving assistant turned on";
       case "off":
+        engine.getMotor().stop();
+        engine.getSteeringServo().turnStraight();
         drivingAssistant.setAssistantState(false);
         return "Driving assistant turned off";
       default:
